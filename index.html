@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Papan Strategi Bola</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+:root{--bg:#eef1f4;--panel:#fff;--ink:#14212b;--mute:#5b6b78;--line:#d5dce2;--accent:#0f7a4a;--on:#e3f3ea;--danger:#b3261e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101820;--panel:#18232d;--ink:#e8eef2;--mute:#93a3af;--line:#2b3a46;--accent:#3ccf8e;--on:#1d3a2f;--danger:#ff8a80}}
+:root[data-theme="dark"]{--bg:#101820;--panel:#18232d;--ink:#e8eef2;--mute:#93a3af;--line:#2b3a46;--accent:#3ccf8e;--on:#1d3a2f;--danger:#ff8a80}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.45 Barlow,system-ui,sans-serif}
+h1,h3,.tab,.r b{font-family:"Barlow Condensed","Arial Narrow",sans-serif}
+h1{margin:0;font-size:28px;letter-spacing:.2px}
+h3{margin:0 0 8px;font-size:18px}
+.wrap{max-width:1280px;margin:0 auto;padding:14px}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.app{display:grid;grid-template-columns:minmax(300px,360px) 1fr;gap:14px;align-items:start}
+.side{display:flex;flex-direction:column;gap:12px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.stage{position:sticky;top:10px}
+svg{display:block;width:100%;height:auto;border-radius:8px;touch-action:none;user-select:none;-webkit-user-select:none}
+.mute{color:var(--mute);margin:0}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tab,button,select,input{font:inherit;color:var(--ink)}
+button{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:7px 11px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.tab{font-size:17px;font-weight:600;display:flex;align-items:center;gap:7px}
+.tab i{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.35)}
+.tab.on{background:var(--on);border-color:var(--accent)}
+.danger{color:var(--danger)}
+label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--mute);flex:1;min-width:0}
+label.chk{flex-direction:row;align-items:center;gap:7px;font-size:14px;color:var(--ink)}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;width:100%;min-width:0}
+input[type=checkbox]{width:auto}
+input[type=color]{padding:2px;height:36px}
+.row{display:flex;gap:8px;align-items:flex-end;margin-bottom:8px}
+.r{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-radius:7px;cursor:pointer;border:1px solid transparent}
+.r:hover{background:var(--bg)}
+.r.on{background:var(--on);border-color:var(--accent)}
+.r b{font-size:19px;text-align:center}
+.r i{font-style:normal;color:var(--mute);font-size:13px}
+#ro{max-height:340px;overflow-y:auto}
+#ro button{margin-top:8px;width:100%}
+.pl{cursor:grab}
+.ro .pl{cursor:default}
+.ro #tctl,.ro #ed,.ro [data-act="addt"],.ro [data-act="addp"],.ro [data-act="reset"],.ro [data-act="imp"]{display:none!important}
+.pl circle{stroke:#fff;stroke-width:.5}
+.pl.sel circle{stroke:#ffd23f;stroke-width:1}
+.pl .n{font:700 3.2px "Barlow Condensed",sans-serif;text-anchor:middle;pointer-events:none}
+.pl .nm{font:600 2.5px Barlow,sans-serif;text-anchor:middle;fill:#fff;stroke:rgba(0,0,0,.65);stroke-width:.55px;paint-order:stroke;pointer-events:none}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tools label{flex-direction:row;align-items:center;color:var(--ink);gap:6px}
+.tools select{width:auto}
+@media (max-width:880px){.app{grid-template-columns:1fr}.stage{position:static;order:-1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Papan Strategi Bola</h1>
+    <div class="tools"><b id="role"></b>
+      <button data-act="login" id="bin" hidden>Masuk admin</button>
+      <button data-act="logout" id="bout" hidden>Keluar</button>
+      <label>Label <select id="lab"><option value="name">Nama</option><option value="pos">Posisi</option><option value="both">Nama + posisi</option></select></label>
+      <button data-act="exp" id="exp">Simpan ke file</button>
+      <button data-act="imp">Buka file</button>
+      <input type="file" id="imp" accept=".json,application/json" hidden>
+      <button data-act="share">Salin tautan papan</button>
+      <input id="lnk" readonly hidden aria-label="Tautan papan" style="flex:1 1 240px">
+      <button data-act="reset" data-orig="Reset papan">Reset papan</button>
+      <span class="mute" id="msg" role="status"></span>
+    </div>
+  </div>
+  <div class="box" id="login" hidden style="max-width:420px;margin-bottom:12px">
+    <h3>Masuk sebagai admin</h3>
+    <form id="lf" autocomplete="off">
+      <div class="row"><label>Username<input id="lu" autocapitalize="none" required></label><label>Password<input id="lp" type="password" required></label></div>
+      <div class="row"><button type="submit">Masuk</button><button type="button" data-act="lcancel">Batal</button></div>
+      <p class="danger" id="lerr" role="alert" style="margin:0"></p>
+    </form>
+  </div>
+  <div class="app">
+    <div class="side">
+      <div class="box"><h3>Tim</h3><div class="tabs" id="tabs"></div></div>
+      <div class="box" id="tctl"></div>
+      <div class="box" id="ed"></div>
+      <div class="box" id="ro"></div>
+    </div>
+    <div class="stage">
+      <svg id="sv" viewBox="-2 -2 109 72" role="img" aria-label="Lapangan sepak bola">
+        <g id="field"></g><g id="pl"></g>
+      </svg>
+      <p class="mute" style="margin-top:8px">Lapangan menampilkan tim yang sedang dipilih. Seret pemain untuk memindahkan, klik dua kali untuk mengubah namanya.</p>
+    </div>
+  </div>
+</div>
+<datalist id="poss"><option>GK<option>LB<option>LCB<option>CB<option>RCB<option>RB<option>LWB<option>RWB<option>CDM<option>CM<option>LM<option>RM<option>CAM<option>LW<option>RW<option>SS<option>ST<option>SUB</datalist>
+<script>
+const W=105,H=68,MAX=7,KEY='papan-strategi-v2';
+const FORM={
+'2-3-1':[['GK',6,34],['LB',24,20],['RB',24,48],['LM',44,12],['CM',44,34],['RM',44,56],['ST',62,34]],
+'3-2-1':[['GK',6,34],['LCB',24,14],['CB',24,34],['RCB',24,54],['LCM',44,24],['RCM',44,44],['ST',62,34]],
+'2-2-2':[['GK',6,34],['LB',24,20],['RB',24,48],['LM',44,20],['RM',44,48],['LST',62,24],['RST',62,44]],
+'3-1-2':[['GK',6,34],['LCB',24,14],['CB',24,34],['RCB',24,54],['CDM',42,34],['LST',62,24],['RST',62,44]]
+};
+const COLORS=['#e63946','#1d6fe0','#f4b400','#8e44ad','#ff7a00','#00a6a6'];
+const $=id=>document.getElementById(id);
+const uid=()=>Math.random().toString(36).slice(2,8);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ink=c=>{const n=parseInt(c.slice(1),16);return ((n>>16)*299+((n>>8)&255)*587+(n&255)*114)/1000>150?'#111':'#fff'};
+
+function mkP(n,f,side){return{id:uid(),num:n,name:'Pemain '+n,pos:f[0],x:side==='R'?W-f[1]:f[1],y:f[2]}}
+function mkTeam(i){const t={id:uid(),name:'Tim '+(i+1),color:COLORS[i%COLORS.length],side:'L',show:true,form:'2-3-1',players:[]};
+  FORM['2-3-1'].forEach((f,k)=>t.players.push(mkP(k+1,f,t.side)));return t}
+function fresh(){const a=mkTeam(0);return{teams:[a,mkTeam(1)],active:a.id,sel:null,label:'name'}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.teams)&&s.teams.length)return s}catch(e){}return null}
+let S=load()||fresh();
+const save=()=>{if(RO)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushDb()};
+const T=id=>S.teams.find(t=>t.id===id);
+const AT=()=>T(S.active)||S.teams[0];
+
+// lapangan
+(function(){let f='';for(let i=0;i<10;i++)f+=`<rect x="${i*10.5}" y="0" width="10.5" height="68" fill="${i%2?'#2f8f4e':'#37a058'}"/>`;
+const L='fill="none" stroke="#fff" stroke-opacity=".85" stroke-width=".35"';
+f+=`<g ${L}><rect x="0" y="0" width="105" height="68"/><line x1="52.5" y1="0" x2="52.5" y2="68"/><circle cx="52.5" cy="34" r="9.15"/>
+<rect x="0" y="13.84" width="16.5" height="40.32"/><rect x="88.5" y="13.84" width="16.5" height="40.32"/>
+<rect x="0" y="24.84" width="5.5" height="18.32"/><rect x="99.5" y="24.84" width="5.5" height="18.32"/>
+<path d="M16.5 26.7A9.15 9.15 0 0 1 16.5 41.3"/><path d="M88.5 26.7A9.15 9.15 0 0 0 88.5 41.3"/>
+<rect x="-1.5" y="30.3" width="1.5" height="7.4"/><rect x="105" y="30.3" width="1.5" height="7.4"/></g>
+<g fill="#fff" fill-opacity=".85"><circle cx="52.5" cy="34" r=".5"/><circle cx="11" cy="34" r=".5"/><circle cx="94" cy="34" r=".5"/></g>`;
+$('field').innerHTML=f})();
+
+const lab=p=>S.label==='pos'?p.pos:S.label==='both'?p.name+' ('+p.pos+')':p.name;
+function drawPitch(){
+  const t=AT();$('pl').innerHTML=[t].map(t=>t.players.map(p=>
+  `<g class="pl${S.sel===p.id?' sel':''}" data-t="${t.id}" data-p="${p.id}" transform="translate(${p.x} ${p.y})"><circle r="3.3" fill="${t.color}"/><text class="n" fill="${ink(t.color)}" y="1.1">${esc(p.num)}</text><text class="nm" y="6.8">${esc(lab(p))}</text></g>`).join('')).join('')}
+function renderTabs(){
+  $('tabs').innerHTML=S.teams.map(t=>`<button class="tab${t.id===S.active?' on':''}" data-act="tab" data-t="${t.id}"><i style="background:${t.color}"></i>${esc(t.name)}</button>`).join('')+`<button data-act="addt">+ Tim</button>`}
+function renderTctl(){const t=AT();
+  $('tctl').innerHTML=`<h3>Pengaturan tim</h3>
+  <div class="row"><label>Nama tim<input id="t-name" value="${esc(t.name)}"></label><label style="flex:0 0 70px">Warna<input id="t-color" type="color" value="${t.color}"></label></div>
+  <div class="row"><label>Formasi<select id="t-form">${Object.keys(FORM).map(f=>`<option${f===t.form?' selected':''}>${f}</option>`).join('')}</select></label><button data-act="applyf">Terapkan</button></div>
+  
+  <button class="danger" data-act="delt" data-orig="Hapus tim"${S.teams.length<2?' disabled':''}>Hapus tim</button>`}
+function renderEditor(){const t=AT(),p=t.players.find(q=>q.id===S.sel);
+  $('ed').innerHTML=p?`<h3>Edit pemain</h3><div class="row"><label>Nama<input id="e-name" value="${esc(p.name)}"></label></div>
+  <div class="row"><label style="flex:0 0 80px">No.<input id="e-num" type="number" min="0" max="99" value="${esc(p.num)}"></label><label>Posisi<input id="e-pos" list="poss" value="${esc(p.pos)}"></label></div>
+  <button class="danger" data-act="delp">Hapus pemain</button>`
+  :`<h3>Edit pemain</h3><p class="mute">Pilih pemain di lapangan atau di daftar untuk mengubah nama, nomor, dan posisinya.</p>`}
+function renderRoster(){const t=AT();
+  $('ro').innerHTML=`<h3>Pemain ${esc(t.name)} (${t.players.length}/${MAX})</h3>`+t.players.map(p=>`<div class="r${p.id===S.sel?' on':''}" data-act="sel" data-p="${p.id}"><b>${esc(p.num)}</b><span>${esc(p.name)}</span><i>${esc(p.pos)}</i></div>`).join('')+`<button data-act="addp"${t.players.length>=MAX?' disabled':''}>${t.players.length>=MAX?'Tim penuh (maks. '+MAX+' pemain)':'+ Tambah pemain'}</button>`}
+function renderSide(){renderTabs();renderTctl();renderEditor();renderRoster()}
+function renderAll(){renderSide();drawPitch();$('lab').value=S.label}
+
+function select(tid,pid){const ch=tid!==S.active;S.active=tid;S.sel=pid;renderSide();if(ch)drawPitch();
+  $('pl').querySelectorAll('.pl').forEach(el=>el.classList.toggle('sel',el.dataset.p===pid));save()}
+
+// seret pemain
+const sv=$('sv');let drag=null;
+sv.addEventListener('pointerdown',e=>{const g=e.target.closest('.pl');if(!g||RO)return;
+  const t=T(g.dataset.t),p=t.players.find(q=>q.id===g.dataset.p);drag={g,p};
+  g.setPointerCapture(e.pointerId);select(t.id,p.id);e.preventDefault()});
+sv.addEventListener('pointermove',e=>{if(!drag)return;const pt=sv.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
+  const q=pt.matrixTransform(sv.getScreenCTM().inverse());
+  drag.p.x=Math.round(clamp(q.x,0,W)*10)/10;drag.p.y=Math.round(clamp(q.y,0,H)*10)/10;
+  drag.g.setAttribute('transform',`translate(${drag.p.x} ${drag.p.y})`)});
+const endDrag=()=>{if(drag){drag=null;save()}};
+sv.addEventListener('pointerup',endDrag);sv.addEventListener('pointercancel',endDrag);
+sv.addEventListener('dblclick',e=>{if(e.target.closest('.pl')){const i=$('e-name');if(i){i.focus();i.select()}}});
+
+// input
+document.addEventListener('input',e=>{if(RO)return;const id=e.target.id,t=AT(),p=t.players.find(q=>q.id===S.sel),v=e.target.value;
+  if(id==='t-name'){t.name=v;renderTabs();renderRoster()}
+  else if(id==='t-color'){t.color=v;renderTabs();drawPitch()}
+  else if(p&&id==='e-name'){p.name=v;drawPitch();renderRoster()}
+  else if(p&&id==='e-num'){p.num=v;drawPitch();renderRoster()}
+  else if(p&&id==='e-pos'){p.pos=v;drawPitch();renderRoster()}
+  else return;save()});
+document.addEventListener('change',e=>{if(RO&&e.target.id!=='lab')return;const id=e.target.id,t=AT();
+  if(id==='t-form'){t.form=e.target.value;save()}
+  else if(id==='t-show'){t.show=e.target.checked;drawPitch();save()}
+  else if(id==='lab'){S.label=e.target.value;drawPitch();save()}});
+
+// aksi
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,t=AT();if(a==='login'){$('login').hidden=false;$('lu').focus();return}if(a==='lcancel'){$('login').hidden=true;return}
+  if(a==='logout'){try{sessionStorage.removeItem(SK)}catch(e){}RO=true;S.sel=null;setRole();renderAll();$('msg').textContent='Keluar. Sekarang dalam mode tamu.';return}
+  if(RO&&!['tab','sel','share','exp'].includes(a))return;if(a==='share'){share();return}if(a==='exp'){doExport();return}if(a==='imp'){$('imp').click();return}
+  if(a==='delt'||a==='reset'){if(!b.dataset.armed){b.dataset.armed=1;b.textContent='Klik lagi untuk konfirmasi';
+    setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent=b.dataset.orig}},3000);return}}
+  if(a==='tab'){select(b.dataset.t,null);return}
+  if(a==='sel'){select(t.id,b.dataset.p);return}
+  if(a==='addt'){const n=mkTeam(S.teams.length);S.teams.push(n);S.active=n.id;S.sel=null}
+  else if(a==='delt'){S.teams=S.teams.filter(x=>x.id!==t.id);S.active=S.teams[0].id;S.sel=null}
+  else if(a==='applyf'){t.form=$('t-form').value;FORM[t.form].forEach((f,k)=>{const q=t.players[k];
+    if(!q)t.players.push(mkP(k+1,f,t.side));else{q.pos=f[0];q.x=t.side==='R'?W-f[1]:f[1];q.y=f[2]}})}
+  else if(a==='flip'){t.side=t.side==='R'?'L':'R';t.players.forEach(q=>{q.x=Math.round((W-q.x)*10)/10})}
+  else if(a==='addp'){if(t.players.length>=MAX)return;const n=t.players.reduce((m,q)=>Math.max(m,parseInt(q.num)||0),0)+1;
+    const q={id:uid(),num:n,name:'Pemain '+n,pos:'SUB',x:52.5,y:34};t.players.push(q);S.sel=q.id}
+  else if(a==='delp'){t.players=t.players.filter(q=>q.id!==S.sel);S.sel=null}
+  else if(a==='reset'){S=fresh()}
+  renderAll();save()});
+
+const BASE='https://claude.ai/artifact/9ALAyXiZgazNgC6ZZhXbHP';
+const pack=()=>S.teams.map(t=>[t.name,t.color.slice(1),t.form,t.players.map(p=>[p.num,p.name,p.pos,p.x,p.y])]);
+function enc(o){let s='';new TextEncoder().encode(JSON.stringify(o)).forEach(c=>s+=String.fromCharCode(c));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function dec(k){k=k.replace(/-/g,'+').replace(/_/g,'/');k+='='.repeat((4-k.length%4)%4);return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(k),c=>c.charCodeAt(0))))}
+function unpack(a){if(!Array.isArray(a)||!a.length)throw 0;
+  const teams=a.slice(0,12).map((t,i)=>({id:uid(),name:String(t[0]||'Tim '+(i+1)).slice(0,40),color:/^[0-9a-f]{6}$/i.test(t[1])?'#'+t[1]:COLORS[i%COLORS.length],side:'L',show:true,form:FORM[t[2]]?t[2]:'2-3-1',
+    players:(Array.isArray(t[3])?t[3]:[]).slice(0,MAX).map(p=>({id:uid(),num:String(p[0]??'').slice(0,3),name:String(p[1]??'').slice(0,40),pos:String(p[2]??'').slice(0,8),x:clamp(+p[3]||0,0,W),y:clamp(+p[4]||0,0,H)}))}));
+  return{teams,active:teams[0].id,sel:null,label:S.label}}
+async function share(){const m=$('msg'),l=$('lnk'),u=BASE+'#'+enc(pack());
+  try{await navigator.clipboard.writeText(u);l.hidden=true;m.textContent='Tautan disalin. Tempel di WhatsApp atau pesan lain.'}
+  catch(e){l.hidden=false;l.value=u;l.focus();l.select();m.textContent='Salin tautan di kolom ini.'}}
+let DL=null;
+(async()=>{try{DL=await claude.use('downloads')}catch(e){}})();
+async function save2(text){if(DL){await DL.save({filename:'papan-strategi.json',data:text});return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download='papan-strategi.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+async function doExport(){const m=$('msg');
+  try{await save2(JSON.stringify({app:'papan-strategi',v:2,teams:S.teams.map(t=>({name:t.name,color:t.color,form:t.form,players:t.players.map(p=>({num:p.num,name:p.name,pos:p.pos,x:p.x,y:p.y}))}))},null,1));m.textContent='File siap disimpan.'}
+  catch(e){m.textContent=e&&e.code==='declined'?'Penyimpanan dibatalkan.':'Tidak bisa menyimpan file di sini.'}}
+$('imp').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const m=$('msg');
+  try{const d=JSON.parse(await f.text());if(!d||!Array.isArray(d.teams))throw 0;
+  S=unpack(d.teams.map(t=>[t.name,String(t.color||'').replace('#',''),t.form,(Array.isArray(t.players)?t.players:[]).map(p=>[p.num,p.name,p.pos,p.x,p.y])]));
+  renderAll();save();m.textContent='Papan dibuka dari file.'}
+  catch(err){m.textContent='File tidak dikenali. Pilih file hasil Simpan ke file.'}});
+let RO=typeof claude!=='undefined',BOARD=null,lastJ='',dbT;
+const SK='papan-admin-ok',AUSER='admin',AHASH='776d743b170a7d1c9d372e1362ef24c06a0b352295434c524c0fceadd1c2bf4b';
+let CAN=false,fails=0;
+const unlocked=()=>{try{return sessionStorage.getItem(SK)==='1'}catch(e){return false}};
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function pull(){try{const s=await BOARD.get();if(s.exists)applyDb(s.data());else pushDb()}catch(e){}}
+$('lf').addEventListener('submit',async e=>{e.preventDefault();const er=$('lerr'),u=$('lu').value.trim(),p=$('lp').value;
+  if(!window.crypto||!crypto.subtle){er.textContent='Browser ini tidak mendukung login.';return}
+  await new Promise(r=>setTimeout(r,fails*800));
+  const ok=u.toLowerCase()===AUSER&&await sha('papan-strategi|'+AUSER+'|'+p)===AHASH;
+  $('lp').value='';
+  if(!ok){fails=Math.min(fails+1,6);er.textContent='Username atau password salah.';return}
+  fails=0;er.textContent='';
+  if(!CAN){er.textContent='Password benar, tetapi akun Anda belum punya izin edit pada halaman ini. Minta pemilik memberi akses edit.';return}
+  try{sessionStorage.setItem(SK,'1')}catch(e){}
+  $('login').hidden=true;RO=false;setRole();if(BOARD)await pull();renderAll();$('msg').textContent='Masuk sebagai admin.'});
+function setRole(){const inC=true;document.body.classList.toggle('ro',RO);
+  $('role').textContent=!inC?'':RO?'Mode tamu (hanya lihat)':'Mode admin';$('bin').hidden=!(inC&&RO);$('bout').hidden=!(inC&&!RO)}
+function pushDb(){if(RO||!BOARD)return;const j=JSON.stringify(pack());if(j===lastJ)return;lastJ=j;clearTimeout(dbT);
+  dbT=setTimeout(()=>{BOARD.set({json:j,at:Date.now()}).catch(()=>{})},500)}
+function applyDb(d){try{const i=Math.max(0,S.teams.findIndex(t=>t.id===S.active));const n=unpack(JSON.parse(d.json));
+  n.active=n.teams[Math.min(i,n.teams.length-1)].id;lastJ=d.json;S=n;renderAll()}catch(e){}}
+async function initRole(){
+  if(typeof claude==='undefined'){CAN=true;RO=!unlocked();setRole();$('msg').textContent=RO?'Mode tamu. Klik Masuk admin untuk mengedit.':'';return}
+  const m=$('msg');let u=null,db=null,admin=false;
+  try{u=await claude.use('user')}catch(e){}
+  try{db=await claude.use('db')}catch(e){}
+  try{admin=!!(u&&await u.canEdit())}catch(e){}
+  CAN=admin;RO=!(CAN&&unlocked());BOARD=db?db.doc('board/main'):null;setRole();
+  if(!BOARD){if(RO)m.textContent='Masuk ke Claude untuk melihat papan dari admin.';return}
+  if(!RO)await pull();else m.textContent='Papan hanya bisa dilihat. Perubahan dari admin muncul otomatis.';
+  BOARD.onSnapshot(s=>{if(RO&&s.exists)applyDb(s.data())},()=>{})
+}
+(function(){const h=location.hash.slice(1);if(!h)return;try{S=unpack(dec(h));$('msg').textContent='Papan dimuat dari tautan.'}catch(e){}})();
+
+setRole();initRole();
+renderAll();
+</script>
+</body>
+</html>
